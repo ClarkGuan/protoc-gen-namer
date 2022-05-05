@@ -38,17 +38,12 @@ func main() {
 		messages := fileDescriptor.Messages()
 		for i := 0; i < messages.Len(); i++ {
 			message := messages.Get(i)
-			_, _ = fmt.Fprintln(writer, string(message.FullName()), fullNameOfMessage(message))
-			oneofs := message.Oneofs()
-			for j := 0; j < oneofs.Len(); j++ {
-				oneof := oneofs.Get(j)
-				_, _ = fmt.Fprintln(writer, string(oneof.FullName()), fullNameOfOneof(oneof))
-			}
+			displayMessage(writer, message)
 		}
 		enums := fileDescriptor.Enums()
 		for i := 0; i < enums.Len(); i++ {
 			enum := enums.Get(i)
-			_, _ = fmt.Fprintln(writer, string(enum.FullName()), fullNameOfEnum(enum))
+			displayEnum(writer, enum)
 		}
 	}
 	resp := pluginpb.CodeGeneratorResponse{File: []*pluginpb.CodeGeneratorResponse_File{
@@ -61,6 +56,24 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func displayMessage(w io.Writer, message protoreflect.MessageDescriptor) {
+	_, _ = fmt.Fprintln(w, string(message.FullName()), fullNameOfMessage(message))
+	nestMessages := message.Messages()
+	for i := 0; i < nestMessages.Len(); i++ {
+		msg := nestMessages.Get(i)
+		displayMessage(w, msg)
+	}
+	nestEnums := message.Enums()
+	for i := 0; i < nestEnums.Len(); i++ {
+		nestEnum := nestEnums.Get(i)
+		displayEnum(w, nestEnum)
+	}
+}
+
+func displayEnum(w io.Writer, enum protoreflect.EnumDescriptor) {
+	_, _ = fmt.Fprintln(w, string(enum.FullName()), fullNameOfEnum(enum))
 }
 
 func fullNameOfMessage(message protoreflect.MessageDescriptor) string {
