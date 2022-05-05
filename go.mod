@@ -1,4 +1,4 @@
-module protoc-gen-namer
+module github.com/ClarkGuan/protoc-gen-namer
 
 go 1.10
 
